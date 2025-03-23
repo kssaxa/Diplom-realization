@@ -1,12 +1,14 @@
 import customtkinter
-from database import add_set, get_sets
+import sqlite3
+from tkinter import ttk
+#from .database import init_db
 
 class KnowledgeEditor(customtkinter.CTkFrame):
-     """Класс приложения"""
+    """Класс приложения"""
 
-    def __init__(self):
+    def __init__(self,master, *args, **kwargs):
         """Инициализация объектов интерфейса"""
-        super().__init__()
+        super().__init__(master, *args, **kwargs)
 
         self.title("Редактор знаний")
         self.geometry("1200x800")
@@ -92,28 +94,28 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         self.interface_elements = customtkinter.CTkButton(
             self.frame_middle,
             text="Интерфейсные элементы",
-            command=self.button_callback,
+            command=self.show_interface_elements_intarface,
             fg_color="#FFD1DC",
             text_color="#FF007F",
         )
         self.properties_of_elements = customtkinter.CTkButton(
             self.frame_middle,
             text="Свойства интерфейсных элементов",
-            command=self.button_callback,
+            command=self.show_properties_of_elements,
             fg_color="#FFD1DC",
             text_color="#FF007F",
         )
         self.property_range = customtkinter.CTkButton(
             self.frame_middle,
             text="Область значений свойств",
-            command=self.button_callback,
+            command=self.show_property_range,
             fg_color="#FFD1DC",
             text_color="#FF007F",
         )
         self.defining_element_properties = customtkinter.CTkButton(
             self.frame_middle,
             text="Определение свойств элемента",
-            command=self.button_callback,
+            command=self.show_defining_element_properties,
             fg_color="#FFD1DC",
             text_color="#FF007F",
         )
@@ -237,6 +239,187 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         # Загрузка данных
         self.load_definitions()
 
+    def show_interface_elements_intarface(self, choice="Название множеств"):
+        self.clear_right_frame()
+
+        # Заголовок
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right, text=choice, font=("Arial", 18, "bold")
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
+        )
+
+        self.entry_interface_elements = customtkinter.CTkEntry(
+            self.frame_right, placeholder_text="Введите название элемента", width=280
+        )
+        self.entry_interface_elements.grid(
+            row=1, column=0, padx=10, pady=10, sticky="ew"
+        )
+
+        self.button_add = customtkinter.CTkButton(
+            self.frame_right, text="Добавить", command=self.add_interface_elements
+        )
+        self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+
+        self.tree_interface_elements = ttk.Treeview(
+            self.frame_right, columns=("ID", "Название"), show="headings"
+        )
+        self.tree_interface_elements.heading("ID", text="ID")
+        self.tree_interface_elements.heading(
+            "Название", text="Название интерфесного эелемента"
+        )
+        self.tree_interface_elements.column("ID", width=50)
+        self.tree_interface_elements.column("Название", width=250)
+
+        self.tree_interface_elements.grid(
+            row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew"
+        )
+        self.tree_interface_elements.grid_rowconfigure(2, weight=1)
+        self.tree_interface_elements.grid_columnconfigure(0, weight=1)
+
+        self.load_interface_elements()
+
+    def show_properties_of_elements(self, choice="Свойства интерфейсных элементов"):
+        self.clear_right_frame()
+
+        # Заголовок
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right, text=choice, font=("Arial", 18, "bold")
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
+        )
+
+        self.entry_properties_of_elements = customtkinter.CTkEntry(
+            self.frame_right,
+            placeholder_text="Введите свойство интрефейсного элемента",
+            width=280,
+        )
+        self.entry_properties_of_elements.grid(
+            row=1, column=0, padx=10, pady=10, sticky="ew"
+        )
+
+        self.button_add = customtkinter.CTkButton(
+            self.frame_right, text="Добавить", command=self.add_properties_of_elements
+        )
+        self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+
+        self.tree_properties_of_elements = ttk.Treeview(
+            self.frame_right, columns=("ID", "Название"), show="headings"
+        )
+        self.tree_properties_of_elements.heading("ID", text="ID")
+        self.tree_properties_of_elements.heading(
+            "Название", text="Название интерфесного эелемента"
+        )
+        self.tree_properties_of_elements.column("ID", width=50)
+        self.tree_properties_of_elements.column("Название", width=250)
+
+        self.tree_properties_of_elements.grid(
+            row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew"
+        )
+        self.tree_properties_of_elements.grid_rowconfigure(2, weight=1)
+        self.tree_properties_of_elements.grid_columnconfigure(0, weight=1)
+
+        self.load_properties_of_elements()
+
+    def show_property_range(self, choice="Область значений свойств"):
+
+        self.clear_right_frame()
+
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right,
+            text="Область значений свойств",
+            font=("Arial", 18, "bold"),
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
+        )
+
+        self.properties_list = customtkinter.CTkOptionMenu(
+            self.frame_right, values=self.get_properties_list()
+        )
+        self.properties_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+
+        self.entry_property_range = customtkinter.CTkEntry(
+            self.frame_right,
+            placeholder_text="Введите значение из допустимой области",
+            width=280,
+        )
+        self.entry_property_range.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+        # обратить внимание на эту кнопку
+        self.button_add_property_range = customtkinter.CTkButton(
+            self.frame_right, text="Добавить", command=self.add_property_range
+        )
+        self.button_add_property_range.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+
+        self.tree_property_range = ttk.Treeview(
+            self.frame_right,
+            columns=("ID", "Свойство", "Область занчения"),
+            show="headings",
+        )
+        self.tree_property_range.heading("ID", text="ID")
+        self.tree_property_range.heading("Свойство", text="Свойство")
+        self.tree_property_range.heading("Область занчения", text="Область занчения")
+        self.tree_property_range.column("ID", width=50)
+        self.tree_property_range.column("Свойство", width=150)
+        self.tree_property_range.column("Область занчения", width=250)
+
+        self.tree_property_range.grid(
+            row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew"
+        )
+        self.frame_right.grid_rowconfigure(2, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
+
+        # Загрузка данных
+        self.load_property_range()
+
+    def show_defining_element_properties(self, choice="Определение свойств элемента"):
+        self.clear_right_frame()
+
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right, text="Определение свойств эелмента", font=("Arial", 18, "bold")
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
+        )
+        self.element_list = customtkinter.CTkOptionMenu(
+            self.frame_right, values=self.get_element_list()
+        )
+        self.element_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        
+        self.properties_list = customtkinter.CTkOptionMenu(
+            self.frame_right, values=self.get_properties_list()
+        )
+        self.properties_list.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+
+        self.button_add_definition = customtkinter.CTkButton(
+            self.frame_right, text="Добавить", command=self.add_defining_element_properties
+        )
+        self.button_add_definition.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+        
+        self.tree_defining_element_properties = ttk.Treeview(
+            self.frame_right,
+            columns=("ID", "Элемент", "Свойство"),
+            show="headings",
+        )
+        self.tree_defining_element_properties.heading("ID", text="ID")
+        self.tree_defining_element_properties.heading("Элемент", text="Элемент")
+        self.tree_defining_element_properties.heading("Свойство", text="Свойство")
+        self.tree_defining_element_properties.column("ID", width=50)
+        self.tree_defining_element_properties.column("Элемент", width=150)
+        self.tree_defining_element_properties.column("Свойство", width=250)
+
+        self.tree_defining_element_properties.grid(
+            row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew"
+        )
+        self.frame_right.grid_rowconfigure(2, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
+        
+
+        # Загрузка данных
+        self.load_definitions()
+
     def add_set(self):
         """Добавляет множество в базу данных"""
         name = self.entry.get()
@@ -272,6 +455,57 @@ class KnowledgeEditor(customtkinter.CTkFrame):
                 print("Такое определение уже существует")
             conn.close()
 
+    def add_interface_elements(self):
+        name = self.entry_interface_elements.get()
+        if name:
+            conn = sqlite3.connect("ontology.db")
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO interface_elements (name) VALUES (?)", (name,)
+                )
+                conn.commit()
+                self.entry_interface_elements.delete(0, "end")
+                self.load_interface_elements()
+            except sqlite3.IntegrityError:
+                print("Такой элемент уже существует")
+            conn.close()
+
+    def add_properties_of_elements(self):
+        name = self.entry_properties_of_elements.get()
+        if name:
+            conn = sqlite3.connect("ontology.db")
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO properties_of_elements (name) VALUES (?)", (name,)
+                )
+                conn.commit()
+                self.entry_properties_of_elements.delete(0, "end")
+                self.load_properties_of_elements()
+            except sqlite3.IntegrityError:
+                print("Такой элемент уже существует")
+            conn.close()
+
+    def add_property_range(self):
+        property = self.properties_list.get()
+        ranges = self.entry_property_range.get()
+
+        if property and ranges:
+            conn = sqlite3.connect("ontology.db")
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO property_range (property, ranges) VALUES (?, ?)",
+                    (property, ranges),
+                )
+                conn.commit()
+                self.entry_property_range.delete(0, "end")
+                self.load_property_range()
+            except sqlite3.IntegrityError:
+                print("Такое определение уже существует")
+            conn.close()
+
     def load_sets(self):
         """Загружает данные в таблицу"""
         conn = sqlite3.connect("ontology.db")
@@ -296,6 +530,43 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         for row in rows:
             self.tree_definitions.insert("", "end", values=row)
 
+    def load_interface_elements(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM interface_elements")
+        rows = cursor.fetchall()
+        conn.close()
+
+        self.tree_interface_elements.delete(
+            *self.tree_interface_elements.get_children()
+        )
+        for row in rows:
+            self.tree_interface_elements.insert("", "end", values=row)
+
+    def load_properties_of_elements(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM properties_of_elements")
+        rows = cursor.fetchall()
+        conn.close()
+
+        self.tree_properties_of_elements.delete(
+            *self.tree_properties_of_elements.get_children()
+        )
+        for row in rows:
+            self.tree_properties_of_elements.insert("", "end", values=row)
+
+    def load_property_range(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM property_range")
+        rows = cursor.fetchall()
+        conn.close()
+
+        self.tree_property_range.delete(*self.tree_property_range.get_children())
+        for row in rows:
+            self.tree_property_range.insert("", "end", values=row)
+
     def get_sets_list(self):
         """Возвращает список названий множеств из базы"""
         conn = sqlite3.connect("ontology.db")
@@ -305,6 +576,21 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         conn.close()
         return sets
 
+    def get_properties_list(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM properties_of_elements")
+        sets = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return sets
+
+    def get_element_list(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM interface_elements")
+        sets = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return sets
     def optionmenu_callback(self, choice):
         """Вызывает нужный интерфейс при выборе из списка"""
         if choice == "Определение множеств":
@@ -316,26 +602,7 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         """Пример обработчика кнопки"""
         print("Кнопка работает")
 
+        """Очищает правый фрейм перед загрузкой нового интерфейса"""
+        for widget in self.frame_right.winfo_children():
+            widget.destroy()
 
-def init_db():
-    """Создаёт базу данных и таблицы, если их нет"""
-    conn = sqlite3.connect("ontology.db")
-    cursor = conn.cursor()
-
-    # Таблица с множествами
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS sets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
-        )"""
-    )
-
-    # Таблица с определениями множеств
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS definitions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            set_name TEXT NOT NULL,
-            definition TEXT NOT NULL,
-            FOREIGN KEY (set_name) REFERENCES sets (name) ON DELETE CASCADE
-        )"""
-    )

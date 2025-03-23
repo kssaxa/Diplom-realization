@@ -1,5 +1,5 @@
 import customtkinter
-from database import add_definition, get_definitions
+#from database import add_definition, get_definitions
 
 class DataEditor(customtkinter.CTkFrame):
     def __init__(self, master):

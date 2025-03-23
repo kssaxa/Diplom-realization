@@ -115,7 +115,7 @@ class App(customtkinter.CTk):
         self.defining_element_properties = customtkinter.CTkButton(
             self.frame_middle,
             text="Определение свойств элемента",
-            command=self.button_callback,
+            command=self.show_defining_element_properties,
             fg_color="#FFD1DC",
             text_color="#FF007F",
         )
@@ -374,6 +374,85 @@ class App(customtkinter.CTk):
         # Загрузка данных
         self.load_property_range()
 
+    def show_defining_element_properties(self, choice="Определение свойств элемента"):
+        self.clear_right_frame()
+
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right, text="Определение свойств эелмента", font=("Arial", 18, "bold")
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
+        )
+        self.element_list = customtkinter.CTkOptionMenu(
+            self.frame_right, values=self.get_element_list()
+        )
+        self.element_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        
+        self.properties_list = customtkinter.CTkOptionMenu(
+            self.frame_right, values=self.get_properties_list()
+        )
+        self.properties_list.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+
+        self.button_add_definition = customtkinter.CTkButton(
+            self.frame_right, text="Добавить", command=self.add_defining_element_properties
+        )
+        self.button_add_definition.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+        
+        self.tree_defining_element_properties = ttk.Treeview(
+            self.frame_right,
+            columns=("ID", "Элемент", "Свойство"),
+            show="headings",
+        )
+        self.tree_defining_element_properties.heading("ID", text="ID")
+        self.tree_defining_element_properties.heading("Элемент", text="Элемент")
+        self.tree_defining_element_properties.heading("Свойство", text="Свойство")
+        self.tree_defining_element_properties.column("ID", width=50)
+        self.tree_defining_element_properties.column("Элемент", width=150)
+        self.tree_defining_element_properties.column("Свойство", width=250)
+
+        self.tree_defining_element_properties.grid(
+            row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew"
+        )
+        self.frame_right.grid_rowconfigure(2, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
+        
+
+        # Загрузка данных
+        self.load_defining_element_properties()
+
+
+    def add_defining_element_properties(self):
+        ui_elements = self.element_list.get()
+        property_element = self.properties_list.get()
+
+        if ui_elements and property_element:
+            conn = sqlite3.connect("ontology.db")
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO defining_element_properties (ui_elements, property_element) VALUES (?, ?)",
+                    (ui_elements, property_element),
+                )
+                conn.commit()
+                #self.entry_property_range.delete(0, "end")
+                self.load_property_range()
+            except sqlite3.IntegrityError:
+                print("Такое определение уже существует")
+            conn.close()
+
+    def load_defining_element_properties(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM defining_element_properties")
+        rows = cursor.fetchall()
+        conn.close()
+
+        self.tree_defining_element_properties.delete(
+            *self.tree_defining_element_properties.get_children()
+        )
+        for row in rows:
+            self.tree_defining_element_properties.insert("", "end", values=row)
+    
     def add_set(self):
         """Добавляет множество в базу данных"""
         name = self.entry.get()
@@ -538,6 +617,13 @@ class App(customtkinter.CTk):
         conn.close()
         return sets
 
+    def get_element_list(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM interface_elements")
+        sets = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return sets
     def optionmenu_callback(self, choice):
         """Вызывает нужный интерфейс при выборе из списка"""
         if choice == "Определение множеств":
@@ -590,9 +676,18 @@ def init_db():
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS property_range (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            properties TEXT NOT NULL,
+            property TEXT NOT NULL,
             ranges TEXT NOT NULL,
             FOREIGN KEY (property) REFERENCES properties_of_elements (name) ON DELETE CASCADE
+        )"""
+    )
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS defining_element_properties (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ui_elements TEXT NOT NULL,
+            property_element TEXT NOT NULL,
+            FOREIGN KEY (ui_elements) REFERENCES intarface_elements (name) ON DELETE CASCADE,
+            FOREIGN KEY (property_element) REFERENCES properties_of_elements (name) ON DELETE CASCADE
         )"""
     )
     conn.commit()
