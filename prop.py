@@ -538,7 +538,7 @@ class App(customtkinter.CTk):
             except sqlite3.IntegrityError:
                 print("Такое определение уже существует")
             conn.close()
-
+ 
     def load_sets(self):
         """Загружает данные в таблицу"""
         conn = sqlite3.connect("ontology.db")
@@ -630,7 +630,7 @@ class App(customtkinter.CTk):
             self.show_definitions_interface()
         if choice == "Название множеств":
             self.show_sets_interface(choice)
-
+ 
     def button_callback(self):
         """Пример обработчика кнопки"""
         print("Кнопка работает")

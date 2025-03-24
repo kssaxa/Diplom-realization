@@ -1,82 +1,28 @@
-import customtkinter
 import sqlite3
 from tkinter import ttk
-#from .database import init_db
+import customtkinter
 
-class KnowledgeEditor(customtkinter.CTkFrame):
-    """Класс приложения"""
 
-    def __init__(self,master, *args, **kwargs):
-        """Инициализация объектов интерфейса"""
-        super().__init__(master, *args, **kwargs)
+class KnowledgeEditor:
+    def __init__(self, master):
+        self.master = master
+        self.visible = False
 
-        self.title("Редактор знаний")
-        self.geometry("1200x800")
+        # Создание фреймов (точно как в оригинале)
+        #self.frame_left = customtkinter.CTkFrame(master, fg_color="#fbf2fb", width=220)
+        self.frame_middle = customtkinter.CTkFrame(master, fg_color="#fbf2fb")
+        self.frame_right = customtkinter.CTkFrame(master, fg_color="#fbf2fb", width=400)
 
-        customtkinter.set_appearance_mode("light")
-        customtkinter.set_default_color_theme("blue")
-
-        self.configure(fg_color="#ffffff")
-
-        # Создание фреймов
-        self.frame_left = customtkinter.CTkFrame(self, fg_color="#fbf2fb", width=220)
-        self.frame_middle = customtkinter.CTkFrame(self, fg_color="#fbf2fb")
-        self.frame_right = customtkinter.CTkFrame(self, fg_color="#fbf2fb", width=400)
-
-        self.frame_left.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=10, pady=10)
+       # self.frame_left.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=10, pady=10)
         self.frame_middle.grid(row=0, column=1, sticky="new", padx=10, pady=10)
         self.frame_right.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+        master.grid_rowconfigure(1, weight=1)
+        master.grid_columnconfigure(1, weight=1)
         self.frame_right.grid_rowconfigure(2, weight=1)
         self.frame_right.grid_columnconfigure(0, weight=1)
 
-        # Элементы для левого фрейма
-        self.knowledge_editor = customtkinter.CTkOptionMenu(
-            self.frame_left,
-            values=[
-                "Название множеств",
-                "Определение множеств",
-                "Интерфейсные элементы",
-                "Свойства интерфейсных элементов",
-                "Область значений свойств",
-                "Определение свойств элемента",
-                "Альтернатива для множества",
-                "Группа элементов",
-            ],
-            command=self.optionmenu_callback,
-            fg_color="#FFD1DC",
-            text_color="#FF007F",
-        )
-        self.knowledge_editor.pack(padx=20, pady=10)
-        self.knowledge_editor.set("Редактор знаний")
-
-        self.button_data_editor = customtkinter.CTkOptionMenu(
-            self.frame_left,
-            values=[
-                "Онтологии",
-                "Термины онтологии",
-                "Сорта онтологии",
-                "Экранные формы",
-                "Определение экранной формы",
-            ],
-            command=self.optionmenu_callback,
-            fg_color="#FFD1DC",
-            text_color="#FF007F",
-        )
-        self.button_data_editor.pack(padx=20, pady=10)
-        self.button_data_editor.set("Редактор данных")
-
-        self.button_solver = customtkinter.CTkButton(
-            self.frame_left,
-            text="Решатель задач",
-            command=self.button_callback,
-            fg_color="#FFD1DC",
-            text_color="#FF007F",
-        )
-        self.button_solver.pack(padx=20, pady=10)
-
+        
         self.name_of_sets = customtkinter.CTkButton(
             self.frame_middle,
             text="Название множеств",
@@ -133,6 +79,8 @@ class KnowledgeEditor(customtkinter.CTkFrame):
             fg_color="#FFD1DC",
             text_color="#FF007F",
         )
+
+        # Размещение кнопок в сетке (точно как в оригинале)
         self.name_of_sets.grid(row=0, column=0, padx=10, pady=10)
         self.definition_of_sets.grid(row=0, column=1, padx=10, pady=10)
         self.interface_elements.grid(row=0, column=2, padx=10, pady=10)
@@ -141,6 +89,41 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         self.defining_element_properties.grid(row=1, column=1, padx=10, pady=10)
         self.alternatives_for_sets.grid(row=1, column=2, padx=10, pady=10)
         self.group_of_elements.grid(row=1, column=3, padx=10, pady=10)
+
+    def show(self):
+        """Показывает все фреймы редактора знаний"""
+        if not self.visible:
+            #self.frame_left.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=10, pady=10)
+            self.frame_middle.grid(row=0, column=1, sticky="new", padx=10, pady=10)
+            self.frame_right.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+            
+            self.master.grid_rowconfigure(1, weight=1)
+            self.master.grid_columnconfigure(1, weight=1)
+            self.frame_right.grid_rowconfigure(2, weight=1)
+            self.frame_right.grid_columnconfigure(0, weight=1)
+            
+            self.visible = True
+
+    def hide(self):
+        """Скрывает все фреймы редактора знаний"""
+        if self.visible:
+            #self.frame_left.grid_remove()
+            self.frame_middle.grid_remove()
+            self.frame_right.grid_remove()
+            self.visible = False
+
+    def switch_to_data_editor(self, choice):
+        """Переключается на редактор данных"""
+        self.master.data_editor.show()
+        self.hide()
+
+    def switch_to_solver(self):
+        """Переключается на решатель задач"""
+        self.master.solver.show()
+        self.hide()
+
+    # Здесь добавьте все методы для работы с интерфейсом редактора знаний
+    # (show_sets_interface, add_set, load_sets и т.д. из вашего исходного кода)
 
     def clear_right_frame(self):
         """Очищает правый фрейм перед загрузкой нового интерфейса"""
@@ -351,7 +334,9 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         self.button_add_property_range = customtkinter.CTkButton(
             self.frame_right, text="Добавить", command=self.add_property_range
         )
-        self.button_add_property_range.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+        self.button_add_property_range.grid(
+            row=1, column=2, padx=10, pady=10, sticky="ew"
+        )
 
         self.tree_property_range = ttk.Treeview(
             self.frame_right,
@@ -378,7 +363,9 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         self.clear_right_frame()
 
         self.label_title = customtkinter.CTkLabel(
-            self.frame_right, text="Определение свойств эелмента", font=("Arial", 18, "bold")
+            self.frame_right,
+            text="Определение свойств эелмента",
+            font=("Arial", 18, "bold"),
         )
         self.label_title.grid(
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
@@ -387,17 +374,19 @@ class KnowledgeEditor(customtkinter.CTkFrame):
             self.frame_right, values=self.get_element_list()
         )
         self.element_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
-        
+
         self.properties_list = customtkinter.CTkOptionMenu(
             self.frame_right, values=self.get_properties_list()
         )
         self.properties_list.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
         self.button_add_definition = customtkinter.CTkButton(
-            self.frame_right, text="Добавить", command=self.add_defining_element_properties
+            self.frame_right,
+            text="Добавить",
+            command=self.add_defining_element_properties,
         )
         self.button_add_definition.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
-        
+
         self.tree_defining_element_properties = ttk.Treeview(
             self.frame_right,
             columns=("ID", "Элемент", "Свойство"),
@@ -415,10 +404,41 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         )
         self.frame_right.grid_rowconfigure(2, weight=1)
         self.frame_right.grid_columnconfigure(0, weight=1)
-        
 
         # Загрузка данных
-        self.load_definitions()
+        self.load_defining_element_properties()
+
+    def add_defining_element_properties(self):
+        ui_elements = self.element_list.get()
+        property_element = self.properties_list.get()
+
+        if ui_elements and property_element:
+            conn = sqlite3.connect("ontology.db")
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "INSERT INTO defining_element_properties (ui_elements, property_element) VALUES (?, ?)",
+                    (ui_elements, property_element),
+                )
+                conn.commit()
+                # self.entry_property_range.delete(0, "end")
+                self.load_property_range()
+            except sqlite3.IntegrityError:
+                print("Такое определение уже существует")
+            conn.close()
+
+    def load_defining_element_properties(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM defining_element_properties")
+        rows = cursor.fetchall()
+        conn.close()
+
+        self.tree_defining_element_properties.delete(
+            *self.tree_defining_element_properties.get_children()
+        )
+        for row in rows:
+            self.tree_defining_element_properties.insert("", "end", values=row)
 
     def add_set(self):
         """Добавляет множество в базу данных"""
@@ -591,6 +611,7 @@ class KnowledgeEditor(customtkinter.CTkFrame):
         sets = [row[0] for row in cursor.fetchall()]
         conn.close()
         return sets
+
     def optionmenu_callback(self, choice):
         """Вызывает нужный интерфейс при выборе из списка"""
         if choice == "Определение множеств":
@@ -601,8 +622,3 @@ class KnowledgeEditor(customtkinter.CTkFrame):
     def button_callback(self):
         """Пример обработчика кнопки"""
         print("Кнопка работает")
-
-        """Очищает правый фрейм перед загрузкой нового интерфейса"""
-        for widget in self.frame_right.winfo_children():
-            widget.destroy()
-
