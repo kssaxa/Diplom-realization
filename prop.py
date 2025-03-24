@@ -1,6 +1,7 @@
 import sqlite3
 from tkinter import ttk
 import customtkinter
+from database import init_db
 
 
 class App(customtkinter.CTk):
@@ -420,7 +421,6 @@ class App(customtkinter.CTk):
         # Загрузка данных
         self.load_defining_element_properties()
 
-
     def add_defining_element_properties(self):
         ui_elements = self.element_list.get()
         property_element = self.properties_list.get()
@@ -634,64 +634,6 @@ class App(customtkinter.CTk):
     def button_callback(self):
         """Пример обработчика кнопки"""
         print("Кнопка работает")
-
-
-def init_db():
-    
-    conn = sqlite3.connect("ontology.db")
-    cursor = conn.cursor()
-
-    # Таблица с множествами
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS sets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
-        )"""
-    )
-
-    # Таблица с определениями множеств
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS definitions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            set_name TEXT NOT NULL,
-            definition TEXT NOT NULL,
-            FOREIGN KEY (set_name) REFERENCES sets (name) ON DELETE CASCADE
-        )"""
-    )
-    # Таблица с интерфесными элементами
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS interface_elements (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
-        )"""
-    )
-
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS properties_of_elements (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
-        )"""
-    )
-
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS property_range (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            property TEXT NOT NULL,
-            ranges TEXT NOT NULL,
-            FOREIGN KEY (property) REFERENCES properties_of_elements (name) ON DELETE CASCADE
-        )"""
-    )
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS defining_element_properties (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ui_elements TEXT NOT NULL,
-            property_element TEXT NOT NULL,
-            FOREIGN KEY (ui_elements) REFERENCES intarface_elements (name) ON DELETE CASCADE,
-            FOREIGN KEY (property_element) REFERENCES properties_of_elements (name) ON DELETE CASCADE
-        )"""
-    )
-    conn.commit()
-    conn.close()
 
 
 init_db()

@@ -31,20 +31,28 @@ def init_db():
         )"""
     )
 
-    # Таблица свойства эл-тов
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS properties_of_elements (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL
         )"""
     )
-    # облать значений
+
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS property_range (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            properties TEXT NOT NULL,
+            property TEXT NOT NULL,
             ranges TEXT NOT NULL,
             FOREIGN KEY (property) REFERENCES properties_of_elements (name) ON DELETE CASCADE
+        )"""
+    )
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS defining_element_properties (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ui_elements TEXT NOT NULL,
+            property_element TEXT NOT NULL,
+            FOREIGN KEY (ui_elements) REFERENCES intarface_elements (name) ON DELETE CASCADE,
+            FOREIGN KEY (property_element) REFERENCES properties_of_elements (name) ON DELETE CASCADE
         )"""
     )
     conn.commit()
