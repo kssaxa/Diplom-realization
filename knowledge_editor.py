@@ -8,7 +8,7 @@ class KnowledgeEditor:
         self.master = master
         self.visible = False
 
-        # Создание фреймов (точно как в оригинале)
+       
         #self.frame_left = customtkinter.CTkFrame(master, fg_color="#fbf2fb", width=220)
         self.frame_middle = customtkinter.CTkFrame(master, fg_color="#fbf2fb")
         self.frame_right = customtkinter.CTkFrame(master, fg_color="#fbf2fb", width=400)
@@ -80,7 +80,7 @@ class KnowledgeEditor:
             text_color="#FF007F",
         )
 
-        # Размещение кнопок в сетке (точно как в оригинале)
+        
         self.name_of_sets.grid(row=0, column=0, padx=10, pady=10)
         self.definition_of_sets.grid(row=0, column=1, padx=10, pady=10)
         self.interface_elements.grid(row=0, column=2, padx=10, pady=10)
@@ -113,17 +113,15 @@ class KnowledgeEditor:
             self.visible = False
 
     def switch_to_data_editor(self, choice):
-        """Переключается на редактор данных"""
+        """переключатель на редактор данных"""
         self.master.data_editor.show()
         self.hide()
 
     def switch_to_solver(self):
-        """Переключается на решатель задач"""
+        """переключатель на решатель задач"""
         self.master.solver.show()
         self.hide()
 
-    # Здесь добавьте все методы для работы с интерфейсом редактора знаний
-    # (show_sets_interface, add_set, load_sets и т.д. из вашего исходного кода)
 
     def clear_right_frame(self):
         """Очищает правый фрейм перед загрузкой нового интерфейса"""

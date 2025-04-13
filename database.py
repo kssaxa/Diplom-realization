@@ -57,3 +57,28 @@ def init_db():
     )
     conn.commit()
     conn.close()
+
+
+def init_db_data_editor():
+    conn = sqlite3.connect("data.db")
+    cursor = conn.cursor()
+
+    # Таблица с онтологиями
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS ontologies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )"""
+    )
+
+    # Таблица с определениями множеств
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS sorts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            FOREIGN KEY (name) REFERENCES ontologies (ontology) ON DELETE CASCADE
+        )"""
+    )
+
+    conn.commit()
+    conn.close()
