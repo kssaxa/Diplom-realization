@@ -6,7 +6,6 @@ def init_db():
     conn = sqlite3.connect("ontology.db")
     cursor = conn.cursor()
 
-    # Таблица с множествами
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS sets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +13,6 @@ def init_db():
         )"""
     )
 
-    # Таблица с определениями множеств
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS definitions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +21,7 @@ def init_db():
             FOREIGN KEY (set_name) REFERENCES sets (name) ON DELETE CASCADE
         )"""
     )
-    # Таблица с интерфесными элементами
+ 
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS interface_elements (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +61,7 @@ def init_db_data_editor():
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
-    # Таблица с онтологиями
+    
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS ontologies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,7 +69,7 @@ def init_db_data_editor():
         )"""
     )
 
-    # Таблица с определениями множеств
+    
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS sorts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,6 +77,31 @@ def init_db_data_editor():
             FOREIGN KEY (name) REFERENCES ontologies (ontology) ON DELETE CASCADE
         )"""
     )
+
+
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS ontology_terms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ontology_name TEXT NOT NULL,
+            term TEXT NOT NULL,
+            FOREIGN KEY (ontology_name) REFERENCES ontologies (name) ON DELETE CASCADE
+        )"""
+    )
+
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS ontology_sorts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            ontology_name TEXT NOT NULL,
+            term TEXT NOT NULL, 
+            sort TEXT NOT NULL, 
+            FOREIGN KEY (ontology_name, term) REFERENCES ontology_terms (ontology_name, term) ON DELETE CASCADE,
+            UNIQUE(ontology_name, term, sort)
+        )"""
+    )
+
+
+
+
 
     conn.commit()
     conn.close()

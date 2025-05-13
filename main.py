@@ -73,5 +73,6 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
     init_db()
     init_db_data_editor()
+
     app = App()
     app.mainloop()
