@@ -258,15 +258,16 @@ class DataEditor:
             self.frame_right, text="Сорта онтологии", font=("Arial", 18, "bold")
         )
         self.label_title.grid(
-            row=0, column=0, columnspan=3, padx=5, pady=5, sticky="w"
+            row=0, column=0, columnspan=4, padx=5, pady=5, sticky="w"
         )
 
         self.ontology_list = customtkinter.CTkOptionMenu(
             self.frame_right,
             values=self.get_ontology_list(),
-            command=self.update_terms_list
+            command=self.update_terms_list,
+            width=150
         )
-        self.ontology_list.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+        self.ontology_list.grid(row=1, column=0, padx=2, pady=5, sticky="ew")
 
         ontologies = self.get_ontology_list()
         if ontologies:
@@ -278,23 +279,26 @@ class DataEditor:
         self.term_list = customtkinter.CTkOptionMenu(
             self.frame_right,
             values=initial_terms,
-            command=self.on_term_selected
+            command=self.on_term_selected,
+            width=150
         )
-        self.term_list.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        self.term_list.grid(row=1, column=1, padx=2, pady=5, sticky="ew")
 
         self.sort_list = customtkinter.CTkOptionMenu(
             self.frame_right,
             values=self.get_set_names(),
-            command=self.on_sort_selected
+            command=self.on_sort_selected,
+            width=150
         )
-        self.sort_list.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+        self.sort_list.grid(row=1, column=2, padx=2, pady=5, sticky="ew")
 
         self.button_add_sort = customtkinter.CTkButton(
             self.frame_right,
             text="Добавить",
-            command=self.add_ontology_sort
+            command=self.add_ontology_sort,
+            width=100
         )
-        self.button_add_sort.grid(row=2, column=2, padx=5, pady=5, sticky="ew")
+        self.button_add_sort.grid(row=1, column=3, padx=2, pady=5, sticky="ew")
 
         self.tree_sorts = ttk.Treeview(
             self.frame_right,
@@ -311,9 +315,9 @@ class DataEditor:
         self.tree_sorts.column("Сорт", width=150)
 
         self.tree_sorts.grid(
-            row=3, column=0, columnspan=3, padx=5, pady=5, sticky="nsew"
+            row=2, column=0, columnspan=4, padx=5, pady=5, sticky="nsew"
         )
-        self.frame_right.grid_rowconfigure(3, weight=1)
+        self.frame_right.grid_rowconfigure(2, weight=1)
         self.frame_right.grid_columnconfigure(0, weight=1)
 
         self.load_ontology_sorts()
@@ -345,7 +349,7 @@ class DataEditor:
         conn = sqlite3.connect("ontology.db")  
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT name FROM set_names")  
+            cursor.execute("SELECT DISTINCT set_name FROM definitions WHERE set_name IS NOT NULL AND set_name != ''")  
             set_names = [row[0] for row in cursor.fetchall()]
         except sqlite3.OperationalError:
             set_names = ["Нет доступных множеств"]
