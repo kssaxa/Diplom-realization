@@ -2,8 +2,10 @@ import customtkinter
 from knowledge_editor import KnowledgeEditor
 from data_editor import DataEditor
 from solver import Solver
-from database import init_db,init_db_data_editor
+from database import init_db, init_db_data_editor
 
+
+init_db()
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -71,7 +73,6 @@ class App(customtkinter.CTk):
 
 
 if __name__ == "__main__":
-    init_db()
     init_db_data_editor()
 
     app = App()
