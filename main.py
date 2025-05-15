@@ -25,7 +25,7 @@ class App(customtkinter.CTk):
         self.show_knowledge_editor()
 
     def create_left_frame(self):
-        """левый фрейм с кнопками переключения"""
+        
         self.frame_left = customtkinter.CTkFrame(self, fg_color="#fbf2fb", width=220)
         self.frame_left.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=10, pady=10)
 

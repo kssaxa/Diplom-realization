@@ -91,7 +91,7 @@ class KnowledgeEditor:
         self.group_of_elements.grid(row=1, column=3, padx=10, pady=10)
 
     def show(self):
-        """Показывает все фреймы редактора знаний"""
+      
         if not self.visible:
             #self.frame_left.grid(row=0, column=0, rowspan=2, sticky="nsw", padx=10, pady=10)
             self.frame_middle.grid(row=0, column=1, sticky="new", padx=10, pady=10)
@@ -105,7 +105,7 @@ class KnowledgeEditor:
             self.visible = True
 
     def hide(self):
-        """Скрывает все фреймы редактора знаний"""
+       
         if self.visible:
             #self.frame_left.grid_remove()
             self.frame_middle.grid_remove()
@@ -113,23 +113,23 @@ class KnowledgeEditor:
             self.visible = False
 
     def switch_to_data_editor(self, choice):
-        """переключатель на редактор данных"""
+       
         self.master.data_editor.show()
         self.hide()
 
     def switch_to_solver(self):
-        """переключатель на решатель задач"""
+   
         self.master.solver.show()
         self.hide()
 
 
     def clear_right_frame(self):
-        """Очищает правый фрейм перед загрузкой нового интерфейса"""
+
         for widget in self.frame_right.winfo_children():
             widget.destroy()
 
     def show_sets_interface(self, choice="Название множеств"):
-        """Отображает элементы для управления таблицей 'Название множеств'"""
+     
         self.clear_right_frame()
 
     
@@ -167,7 +167,7 @@ class KnowledgeEditor:
         self.load_sets()
 
     def show_definitions_interface(self):
-        """Отображает элементы для управления таблицей 'Определение множеств'"""
+       
         self.clear_right_frame()
 
        
@@ -427,7 +427,7 @@ class KnowledgeEditor:
         self.load_element_properties()
 
     def update_property_values(self, selected_property):
-        """Обновляет список значений при выборе свойства"""
+      
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("""
@@ -445,15 +445,12 @@ class KnowledgeEditor:
         self.property_values_list.set(values[0])
 
     def add_element_property(self):
-        """Добавляет свойство для элемента"""
+  
         element = self.element_list.get()
         property = self.properties_list.get()
         value = self.property_values_list.get()
 
-        print(f"Добавление свойства:")
-        print(f"Элемент: {element}")
-        print(f"Свойство: {property}")
-        print(f"Значение: {value}")
+     
 
         if element != "Нет элементов" and property != "Нет свойств" and value != "Нет доступных значений":
             conn = sqlite3.connect("ontology.db")
@@ -518,7 +515,7 @@ class KnowledgeEditor:
        
 
     def add_set(self):
-        """Добавляет множество в базу данных"""
+    
         name = self.entry.get()
         if name:
             conn = sqlite3.connect("ontology.db")
@@ -533,7 +530,7 @@ class KnowledgeEditor:
             conn.close()
 
     def add_definition(self):
-        """Добавляет определение множества в базу данных"""
+        
         set_name = self.sets_list.get()
         definition = self.entry_definition.get()
 
@@ -604,7 +601,7 @@ class KnowledgeEditor:
             conn.close()
 
     def load_sets(self):
-        """Загружает данные в таблицу"""
+ 
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM sets")
@@ -616,7 +613,7 @@ class KnowledgeEditor:
             self.tree.insert("", "end", values=row)
 
     def load_definitions(self):
-        """Загружает определения множеств в таблицу"""
+   
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM definitions")
@@ -665,7 +662,7 @@ class KnowledgeEditor:
             self.tree_property_range.insert("", "end", values=row)
 
     def get_sets_list(self):
-        """Возвращает список названий множеств из базы"""
+  
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sets")
@@ -690,18 +687,18 @@ class KnowledgeEditor:
         return sets
 
     def optionmenu_callback(self, choice):
-        """Вызывает нужный интерфейс при выборе из списка"""
+    
         if choice == "Определение множеств":
             self.show_definitions_interface()
         if choice == "Название множеств":
             self.show_sets_interface(choice)
 
     def button_callback(self):
-        """Пример обработчика кнопки"""
+
         print("Кнопка работает")
 
     def show_alternatives_interface(self, choice="Альтернатива для множества"):
-        """Отображает элементы для управления альтернативами множеств"""
+        
         self.clear_right_frame()
 
         self.label_title = customtkinter.CTkLabel(
@@ -757,7 +754,7 @@ class KnowledgeEditor:
         self.load_alternatives()
 
     def get_set_names_from_definitions(self):
-        """Получает список названий множеств из таблицы definitions"""
+      
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         try:
@@ -772,7 +769,7 @@ class KnowledgeEditor:
         return set_names
 
     def add_alternative(self):
-        """Добавляет новую альтернативу в базу данных"""
+       
         alternative_name = self.entry_alternative.get()
         set_name = self.sets_list.get()
 
@@ -792,7 +789,7 @@ class KnowledgeEditor:
             conn.close()
 
     def load_alternatives(self):
-        """Загружает список альтернатив из базы данных"""
+       
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM alternatives")
@@ -804,7 +801,7 @@ class KnowledgeEditor:
             self.tree_alternatives.insert("", "end", values=row)
 
     def show_group_elements_interface(self, choice="Группа элементов"):
-        """Отображает интерфейс для управления группами элементов"""
+        
         self.clear_right_frame()
 
         
@@ -865,7 +862,7 @@ class KnowledgeEditor:
         self.load_groups()
 
     def get_alternatives_list(self):
-        """Получает список альтернатив из базы данных"""
+       
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("SELECT alternative_name FROM alternatives")
@@ -877,7 +874,7 @@ class KnowledgeEditor:
         return alternatives
 
     def get_element_properties_list(self):
-        """Получает список элементов с их свойствами"""
+       
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("""
@@ -892,7 +889,7 @@ class KnowledgeEditor:
         return elements
 
     def add_element_to_group(self):
-        """Добавляет элемент в группу"""
+    
         alternative = self.alternatives_list.get()
         element_property = self.element_properties_list.get()
 
@@ -925,7 +922,7 @@ class KnowledgeEditor:
                 conn.close()
 
     def load_groups(self):
-        """Загружает группы элементов"""
+        
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("""
