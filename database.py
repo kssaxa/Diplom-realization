@@ -1,6 +1,8 @@
 import sqlite3
 
+
 def init_db():
+
     conn = sqlite3.connect("ontology.db")
     cursor = conn.cursor()
 
@@ -9,17 +11,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL
         )"""
-    )
-    
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS definitions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            set_name TEXT NOT NULL,
-            definition TEXT NOT NULL,
-            FOREIGN KEY (set_name) REFERENCES sets (name) ON DELETE CASCADE
-        )"""
-    )
-
+    ) 
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS interface_elements (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,10 +34,8 @@ def init_db():
             FOREIGN KEY (property) REFERENCES properties_of_elements (name) ON DELETE CASCADE
         )"""
     )
-    
-   
     cursor.execute(
-         """CREATE TABLE IF NOT EXISTS element_properties_definition (
+        """CREATE TABLE IF NOT EXISTS element_properties_definition (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             element_id INTEGER,
             property_id INTEGER,
@@ -57,30 +47,69 @@ def init_db():
 
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS alternatives (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            alternative_name TEXT NOT NULL,
-            set_name TEXT NOT NULL, 
-            FOREIGN KEY(set_name) REFERENCES definitions(set_name)
-        )"""
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alternative_name TEXT NOT NULL,
+        set_name TEXT NOT NULL, 
+        FOREIGN KEY(set_name) REFERENCES definitions(set_name))"""
+    )
+
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS alternatives (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        alternative_name TEXT NOT NULL,
+        set_name TEXT NOT NULL, 
+        FOREIGN KEY(set_name) REFERENCES definitions(set_name))"""
     )
 
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS alternative_elements (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            alternative_id INTEGER, 
-            element_property_id INTEGER, 
-            FOREIGN KEY(alternative_id) REFERENCES alternatives(id), 
-            FOREIGN KEY(element_property_id) REFERENCES element_properties_definition(id)
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        alternative_id INTEGER, 
+        element_property_id INTEGER, 
+        FOREIGN KEY(alternative_id) REFERENCES alternatives(id), 
+        FOREIGN KEY(element_property_id) REFERENCES defining_element_properties(id))"""
+    )
+
+    # Создание таблицы пользователей
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
         )"""
     )
 
+    # Создание таблицы групп элементов
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS group_elements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alternative_name TEXT NOT NULL,
+            element_name TEXT NOT NULL,
+            property_name TEXT NOT NULL,
+            property_value TEXT NOT NULL,
+            FOREIGN KEY (alternative_name) REFERENCES alternatives (alternative_name) ON DELETE CASCADE
+        )"""
+    )
+
+    # Добавление тестового пользователя (admin/admin)
+    try:
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            ("admin", "admin")
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        pass  # Пользователь уже существует
+
     conn.commit()
     conn.close()
+
 
 def init_db_data_editor():
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
 
+    
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS ontologies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,34 +117,30 @@ def init_db_data_editor():
         )"""
     )
 
+    
+    cursor.execute(
+        """CREATE TABLE IF NOT EXISTS sorts (
+            CREATE TABLE IF NOT EXISTS ontology_sorts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            ontology_name TEXT,
+            term TEXT, 
+            sort TEXT, 
+            UNIQUE(ontology_name, term, sort),
+            FOREIGN KEY(ontology_name, term) REFERENCES ontology_terms(ontology_name, term));"
+        )"""
+    )
+
+
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS ontology_terms (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ontology_name TEXT NOT NULL,
             term TEXT NOT NULL,
-            FOREIGN KEY (ontology_name) REFERENCES ontologies (name) ON DELETE CASCADE,
-            UNIQUE(ontology_name, term)
+            FOREIGN KEY (ontology_name) REFERENCES ontologies (name) ON DELETE CASCADE
         )"""
     )
 
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS ontology_sorts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            ontology_name TEXT NOT NULL,
-            term TEXT NOT NULL, 
-            sort TEXT NOT NULL, 
-            FOREIGN KEY(ontology_name, term) REFERENCES ontology_terms(ontology_name, term) ON DELETE CASCADE,
-            UNIQUE(ontology_name, term, sort)
-        )"""
-    )
 
-    cursor.execute(
-        """CREATE TABLE IF NOT EXISTS sorts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            FOREIGN KEY (name) REFERENCES ontologies (name) ON DELETE CASCADE
-        )"""
-    )
 
     conn.commit()
     conn.close()
