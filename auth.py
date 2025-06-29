@@ -70,11 +70,12 @@ class AuthScreen(customtkinter.CTk):
             self.error_label.configure(text="Введите логин и пароль")
             return
 
-        # Здесь можно добавить проверку логина и пароля через БД
-        if self.check_credentials(username, password):
+        # Получаем кортеж пользователя (id, username, password, role)
+        user = self.check_credentials(username, password)
+        if user:
             self.destroy()  # Закрываем окно авторизации
-            from main import App  # Импортируем главное окно
-            app = App()
+            from main import App 
+            app = App(role=user[3], username=user[1])
             app.mainloop()
         else:
             self.error_label.configure(text="Неверный логин или пароль")
@@ -83,12 +84,12 @@ class AuthScreen(customtkinter.CTk):
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM users WHERE username = ? AND password = ?",
+            "SELECT id, username, password, role FROM users WHERE username = ? AND password = ?",
             (username, password)
         )
         user = cursor.fetchone()
         conn.close()
-        return user is not None
+        return user
 
 if __name__ == "__main__":
     auth = AuthScreen()

@@ -4,9 +4,10 @@ import customtkinter
 
 
 class KnowledgeEditor:
-    def __init__(self, master):
+    def __init__(self, master, readonly=False):
         self.master = master
         self.visible = False
+        self.readonly = readonly  # Режим только просмотра
 
        
         #self.frame_left = customtkinter.CTkFrame(master, fg_color="#fbf2fb", width=220)
@@ -140,26 +141,27 @@ class KnowledgeEditor:
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
         )
 
-        
-        self.entry = customtkinter.CTkEntry(
-            self.frame_right, placeholder_text="Введите название множества", width=280
-        )
-        self.entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        # Показываем элементы редактирования только если не режим просмотра
+        if not self.readonly:
+            self.entry = customtkinter.CTkEntry(
+                self.frame_right, placeholder_text="Введите название множества", width=280
+            )
+            self.entry.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-        self.button_add = customtkinter.CTkButton(
-            self.frame_right, text="Добавить", command=self.add_set
-        )
-        self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+            self.button_add = customtkinter.CTkButton(
+                self.frame_right, text="Добавить", command=self.add_set
+            )
+            self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
-        # Кнопка удаления
-        self.button_delete = customtkinter.CTkButton(
-            self.frame_right, 
-            text="Удалить", 
-            command=self.delete_set,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+            # Кнопка удаления
+            self.button_delete = customtkinter.CTkButton(
+                self.frame_right, 
+                text="Удалить", 
+                command=self.delete_set,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
 
         # Таблица
         self.tree = ttk.Treeview(
@@ -170,16 +172,20 @@ class KnowledgeEditor:
         self.tree.column("ID", width=50)
         self.tree.column("Название", width=250)
 
-        self.tree.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
-        self.frame_right.grid_rowconfigure(2, weight=1)
+        # Позиционируем таблицу в зависимости от режима
+        if self.readonly:
+            self.tree.grid(row=1, column=0, columnspan=1, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(1, weight=1)
+        else:
+            self.tree.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+            
         self.frame_right.grid_columnconfigure(0, weight=1)
 
         self.load_sets()
 
     def show_definitions_interface(self):
-       
         self.clear_right_frame()
-
        
         self.label_title = customtkinter.CTkLabel(
             self.frame_right, text="Определение множеств", font=("Arial", 18, "bold")
@@ -187,38 +193,34 @@ class KnowledgeEditor:
         self.label_title.grid(
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
         )
-
         
         self.sets_list = customtkinter.CTkOptionMenu(
             self.frame_right, values=self.get_sets_list()
         )
         self.sets_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-        
-        self.entry_definition = customtkinter.CTkEntry(
-            self.frame_right,
-            placeholder_text="Введите обозначение множества",
-            width=280,
-        )
-        self.entry_definition.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
-
+        if not self.readonly:
+            self.entry_definition = customtkinter.CTkEntry(
+                self.frame_right,
+                placeholder_text="Введите обозначение множества",
+                width=280,
+            )
+            self.entry_definition.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
        
-        self.button_add_definition = customtkinter.CTkButton(
-            self.frame_right, text="Добавить", command=self.add_definition
-        )
-        self.button_add_definition.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+            self.button_add_definition = customtkinter.CTkButton(
+                self.frame_right, text="Добавить", command=self.add_definition
+            )
+            self.button_add_definition.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
 
-        # Кнопка удаления
-        self.button_delete_definition = customtkinter.CTkButton(
-            self.frame_right, 
-            text="Удалить", 
-            command=self.delete_definition,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete_definition.grid(row=1, column=3, padx=10, pady=10, sticky="ew")
+            self.button_delete_definition = customtkinter.CTkButton(
+                self.frame_right, 
+                text="Удалить", 
+                command=self.delete_definition,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete_definition.grid(row=1, column=3, padx=10, pady=10, sticky="ew")
 
-        # Таблица
         self.tree_definitions = ttk.Treeview(
             self.frame_right,
             columns=("ID", "Множество", "Определение"),
@@ -231,69 +233,74 @@ class KnowledgeEditor:
         self.tree_definitions.column("Множество", width=150)
         self.tree_definitions.column("Определение", width=250)
 
-        self.tree_definitions.grid(
-            row=2, column=0, columnspan=4, padx=10, pady=10, sticky="nsew"
-        )
-        self.frame_right.grid_rowconfigure(2, weight=1)
+        if self.readonly:
+            self.tree_definitions.grid(
+                row=2, column=0, columnspan=2, padx=10, pady=10, sticky="nsew"
+            )
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        else:
+            self.tree_definitions.grid(
+                row=2, column=0, columnspan=4, padx=10, pady=10, sticky="nsew"
+            )
+            self.frame_right.grid_rowconfigure(2, weight=1)
         self.frame_right.grid_columnconfigure(0, weight=1)
 
         self.load_definitions()
 
     def show_interface_elements_intarface(self, choice="Название множеств"):
         self.clear_right_frame()
-
     
         self.label_title = customtkinter.CTkLabel(
-            self.frame_right, text=choice, font=("Arial", 18, "bold")
+            self.frame_right, text="Интерфейсные элементы", font=("Arial", 18, "bold")
         )
         self.label_title.grid(
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
         )
 
-        self.entry_interface_elements = customtkinter.CTkEntry(
-            self.frame_right, placeholder_text="Введите название элемента", width=280
-        )
-        self.entry_interface_elements.grid(
-            row=1, column=0, padx=10, pady=10, sticky="ew"
-        )
+        if not self.readonly:
+            self.entry_interface_elements = customtkinter.CTkEntry(
+                self.frame_right,
+                placeholder_text="Введите название интерфейсного элемента",
+                width=280,
+            )
+            self.entry_interface_elements.grid(
+                row=1, column=0, padx=10, pady=10, sticky="ew"
+            )
 
-        self.button_add = customtkinter.CTkButton(
-            self.frame_right, text="Добавить", command=self.add_interface_elements
-        )
-        self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+            self.button_add = customtkinter.CTkButton(
+                self.frame_right, text="Добавить", command=self.add_interface_elements
+            )
+            self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
-        # Кнопка удаления
-        self.button_delete = customtkinter.CTkButton(
-            self.frame_right, 
-            text="Удалить", 
-            command=self.delete_interface_element,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+            self.button_delete = customtkinter.CTkButton(
+                self.frame_right, 
+                text="Удалить", 
+                command=self.delete_interface_element,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
 
-        # Таблица
         self.tree_interface_elements = ttk.Treeview(
             self.frame_right, columns=("ID", "Название"), show="headings"
         )
         self.tree_interface_elements.heading("ID", text="ID")
-        self.tree_interface_elements.heading(
-            "Название", text="Название интерфесного эелемента"
-        )
+        self.tree_interface_elements.heading("Название", text="Название интерфейсного элемента")
         self.tree_interface_elements.column("ID", width=50)
         self.tree_interface_elements.column("Название", width=250)
 
-        self.tree_interface_elements.grid(
-            row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew"
-        )
-        self.tree_interface_elements.grid_rowconfigure(2, weight=1)
-        self.tree_interface_elements.grid_columnconfigure(0, weight=1)
+        if self.readonly:
+            self.tree_interface_elements.grid(row=2, column=0, columnspan=1, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        else:
+            self.tree_interface_elements.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
 
         self.load_interface_elements()
 
     def show_properties_of_elements(self, choice="Свойства интерфейсных элементов"):
         self.clear_right_frame()
-
     
         self.label_title = customtkinter.CTkLabel(
             self.frame_right, text=choice, font=("Arial", 18, "bold")
@@ -302,31 +309,30 @@ class KnowledgeEditor:
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
         )
 
-        self.entry_properties_of_elements = customtkinter.CTkEntry(
-            self.frame_right,
-            placeholder_text="Введите свойство интрефейсного элемента",
-            width=280,
-        )
-        self.entry_properties_of_elements.grid(
-            row=1, column=0, padx=10, pady=10, sticky="ew"
-        )
+        if not self.readonly:
+            self.entry_properties_of_elements = customtkinter.CTkEntry(
+                self.frame_right,
+                placeholder_text="Введите свойство интрефейсного элемента",
+                width=280,
+            )
+            self.entry_properties_of_elements.grid(
+                row=1, column=0, padx=10, pady=10, sticky="ew"
+            )
 
-        self.button_add = customtkinter.CTkButton(
-            self.frame_right, text="Добавить", command=self.add_properties_of_elements
-        )
-        self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+            self.button_add = customtkinter.CTkButton(
+                self.frame_right, text="Добавить", command=self.add_properties_of_elements
+            )
+            self.button_add.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
-        # Кнопка удаления
-        self.button_delete = customtkinter.CTkButton(
-            self.frame_right, 
-            text="Удалить", 
-            command=self.delete_property,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
+            self.button_delete = customtkinter.CTkButton(
+                self.frame_right, 
+                text="Удалить", 
+                command=self.delete_property,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
 
-        # Таблица
         self.tree_properties_of_elements = ttk.Treeview(
             self.frame_right, columns=("ID", "Название"), show="headings"
         )
@@ -337,59 +343,55 @@ class KnowledgeEditor:
         self.tree_properties_of_elements.column("ID", width=50)
         self.tree_properties_of_elements.column("Название", width=250)
 
-        self.tree_properties_of_elements.grid(
-            row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew"
-        )
-        self.tree_properties_of_elements.grid_rowconfigure(2, weight=1)
-        self.tree_properties_of_elements.grid_columnconfigure(0, weight=1)
+        if self.readonly:
+            self.tree_properties_of_elements.grid(row=2, column=0, columnspan=1, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        else:
+            self.tree_properties_of_elements.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
 
         self.load_properties_of_elements()
 
     def show_property_range(self, choice="Область значений свойств"):
-
         self.clear_right_frame()
 
         self.label_title = customtkinter.CTkLabel(
-            self.frame_right,
-            text="Область значений свойств",
-            font=("Arial", 18, "bold"),
+            self.frame_right, text=choice, font=("Arial", 18, "bold")
         )
         self.label_title.grid(
             row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
         )
 
-        self.properties_list = customtkinter.CTkOptionMenu(
-            self.frame_right, values=self.get_properties_list()
-        )
-        self.properties_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+        if not self.readonly:
+            self.properties_list = customtkinter.CTkOptionMenu(
+                self.frame_right,
+                values=self.get_properties_list(),
+                width=200
+            )
+            self.properties_list.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-        self.entry_property_range = customtkinter.CTkEntry(
-            self.frame_right,
-            placeholder_text="Введите значение из допустимой области",
-            width=280,
-        )
-        self.entry_property_range.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
-       
-        self.button_add_property_range = customtkinter.CTkButton(
-            self.frame_right, text="Добавить", command=self.add_property_range
-        )
-        self.button_add_property_range.grid(
-            row=1, column=2, padx=10, pady=10, sticky="ew"
-        )
+            self.entry_property_range = customtkinter.CTkEntry(
+                self.frame_right,
+                placeholder_text="Введите значение свойства",
+                width=200
+            )
+            self.entry_property_range.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
+           
+            self.button_add = customtkinter.CTkButton(
+                self.frame_right, text="Добавить", command=self.add_property_range
+            )
+            self.button_add.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
 
-        # Кнопка удаления
-        self.button_delete_property_range = customtkinter.CTkButton(
-            self.frame_right, 
-            text="Удалить", 
-            command=self.delete_property_range,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete_property_range.grid(
-            row=1, column=3, padx=10, pady=10, sticky="ew"
-        )
+            self.button_delete = customtkinter.CTkButton(
+                self.frame_right, 
+                text="Удалить", 
+                command=self.delete_property_range,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete.grid(row=1, column=3, padx=10, pady=10, sticky="ew")
 
-        # Таблица
         self.tree_property_range = ttk.Treeview(
             self.frame_right,
             columns=("ID", "Свойство", "Область занчения"),
@@ -402,12 +404,13 @@ class KnowledgeEditor:
         self.tree_property_range.column("Свойство", width=150)
         self.tree_property_range.column("Область занчения", width=250)
 
-        self.tree_property_range.grid(
-            row=2, column=0, columnspan=4, padx=10, pady=10, sticky="nsew"
-        )
+        if self.readonly:
+            self.tree_property_range.grid(row=2, column=0, columnspan=1, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        else:
+            self.tree_property_range.grid(row=2, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
         self.frame_right.grid_rowconfigure(2, weight=1)
         self.frame_right.grid_columnconfigure(0, weight=1)
-
         
         self.load_property_range()
 
@@ -422,7 +425,6 @@ class KnowledgeEditor:
         self.label_title.grid(
             row=0, column=0, columnspan=4, padx=5, pady=5, sticky="w"
         )
-
        
         self.element_list = customtkinter.CTkOptionMenu(
             self.frame_right,
@@ -430,7 +432,6 @@ class KnowledgeEditor:
             width=200
         )
         self.element_list.grid(row=1, column=0, padx=2, pady=5, sticky="ew")
-
         
         self.properties_list = customtkinter.CTkOptionMenu(
             self.frame_right,
@@ -439,7 +440,6 @@ class KnowledgeEditor:
             width=200
         )
         self.properties_list.grid(row=1, column=1, padx=2, pady=5, sticky="ew")
-
     
         self.property_values_list = customtkinter.CTkOptionMenu(
             self.frame_right,
@@ -448,27 +448,25 @@ class KnowledgeEditor:
         )
         self.property_values_list.grid(row=1, column=2, padx=2, pady=5, sticky="ew")
 
-        
-        self.button_add_property = customtkinter.CTkButton(
-            self.frame_right,
-            text="Добавить",
-            command=self.add_element_property,
-            width=100
-        )
-        self.button_add_property.grid(row=1, column=3, padx=2, pady=5, sticky="ew")
+        if not self.readonly:
+            self.button_add_property = customtkinter.CTkButton(
+                self.frame_right,
+                text="Добавить",
+                command=self.add_element_property,
+                width=100
+            )
+            self.button_add_property.grid(row=1, column=3, padx=2, pady=5, sticky="ew")
 
-        # Кнопка удаления
-        self.button_delete_property = customtkinter.CTkButton(
-            self.frame_right,
-            text="Удалить",
-            command=self.delete_element_property,
-            width=100,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete_property.grid(row=1, column=4, padx=2, pady=5, sticky="ew")
+            self.button_delete_property = customtkinter.CTkButton(
+                self.frame_right,
+                text="Удалить",
+                command=self.delete_element_property,
+                width=100,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete_property.grid(row=1, column=4, padx=2, pady=5, sticky="ew")
 
-        # Таблица
         self.tree_element_properties = ttk.Treeview(
             self.frame_right,
             columns=("ID", "Элемент", "Свойство", "Значение"),
@@ -483,111 +481,174 @@ class KnowledgeEditor:
         self.tree_element_properties.column("Свойство", width=150)
         self.tree_element_properties.column("Значение", width=150)
 
-        self.tree_element_properties.grid(
-            row=2, column=0, columnspan=5, padx=5, pady=5, sticky="nsew"
-        )
+        if self.readonly:
+            self.tree_element_properties.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        else:
+            self.tree_element_properties.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky="nsew")
         self.frame_right.grid_rowconfigure(2, weight=1)
         for i in range(5):
             self.frame_right.grid_columnconfigure(i, weight=1)
 
         self.load_element_properties()
 
-    def update_property_values(self, selected_property):
-      
-        conn = sqlite3.connect("ontology.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT ranges 
-            FROM property_range 
-            WHERE property = ?
-        """, (selected_property,))
-        values = [row[0] for row in cursor.fetchall()]
-        conn.close()
+    def show_alternatives_interface(self, choice="Альтернатива для множества"):
+        self.clear_right_frame()
 
-        if not values:
-            values = ["Нет доступных значений"]
-        
-        self.property_values_list.configure(values=values)
-        self.property_values_list.set(values[0])
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right, text=choice, font=("Arial", 18, "bold")
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w"
+        )
 
-    def add_element_property(self):
-  
-        element = self.element_list.get()
-        property = self.properties_list.get()
-        value = self.property_values_list.get()
+        if not self.readonly:
+            self.sets_list_alt = customtkinter.CTkOptionMenu(
+                self.frame_right,
+                values=self.get_set_names_from_definitions(),
+                width=200
+            )
+            self.sets_list_alt.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-     
+            self.entry_alternative = customtkinter.CTkEntry(
+                self.frame_right,
+                placeholder_text="Введите название альтернативы",
+                width=200
+            )
+            self.entry_alternative.grid(row=1, column=1, padx=10, pady=10, sticky="ew")
 
-        if element != "Нет элементов" and property != "Нет свойств" and value != "Нет доступных значений":
-            conn = sqlite3.connect("ontology.db")
-            cursor = conn.cursor()
-            try:
-             
-                cursor.execute("SELECT id FROM interface_elements WHERE name = ?", (element,))
-                element_id_result = cursor.fetchone()
-                print(f"ID элемента: {element_id_result}")
-                
-                cursor.execute("SELECT id FROM properties_of_elements WHERE name = ?", (property,))
-                property_id_result = cursor.fetchone()
-                print(f"ID свойства: {property_id_result}")
+            self.button_add_alt = customtkinter.CTkButton(
+                self.frame_right, text="Добавить", command=self.add_alternative
+            )
+            self.button_add_alt.grid(row=1, column=2, padx=10, pady=10, sticky="ew")
 
-                if element_id_result is None or property_id_result is None:
-                    print("Ошибка: не найден ID элемента или свойства")
-                    return
+            self.button_delete_alt = customtkinter.CTkButton(
+                self.frame_right, 
+                text="Удалить", 
+                command=self.delete_alternative,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete_alt.grid(row=1, column=3, padx=10, pady=10, sticky="ew")
 
-                element_id = element_id_result[0]
-                property_id = property_id_result[0]
+        self.tree_alternatives = ttk.Treeview(
+            self.frame_right,
+            columns=("ID", "Альтернатива", "Множество"),
+            show="headings"
+        )
+        self.tree_alternatives.heading("ID", text="ID")
+        self.tree_alternatives.heading("Альтернатива", text="Название альтернативы")
+        self.tree_alternatives.heading("Множество", text="Название множества")
+        self.tree_alternatives.column("ID", width=50)
+        self.tree_alternatives.column("Альтернатива", width=200)
+        self.tree_alternatives.column("Множество", width=200)
 
-                cursor.execute("""
-                    INSERT INTO element_properties_definition 
-                    (element_id, property_id, property_value) 
-                    VALUES (?, ?, ?)
-                """, (element_id, property_id, value))
-                
-                conn.commit()
-                print("Запись успешно добавлена")
-                self.load_element_properties()
-            except sqlite3.IntegrityError as e:
-                print(f"Ошибка при добавлении: {e}")
-            except Exception as e:
-                print(f"Неожиданная ошибка: {e}")
-            finally:
-                conn.close()
+        if self.readonly:
+            self.tree_alternatives.grid(row=2, column=0, columnspan=1, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        else:
+            self.tree_alternatives.grid(row=2, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+            self.frame_right.grid_rowconfigure(2, weight=1)
+        self.frame_right.grid_columnconfigure(0, weight=1)
 
-    def load_element_properties(self):
-        conn = sqlite3.connect("ontology.db")
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT 
-                epd.id, 
-                ie.name as element_name, 
-                pe.name as property_name, 
-                epd.property_value
-            FROM element_properties_definition epd
-            JOIN interface_elements ie ON epd.element_id = ie.id
-            JOIN properties_of_elements pe ON epd.property_id = pe.id
-            ORDER BY ie.name, pe.name
-        """)
-        rows = cursor.fetchall()
-        conn.close()
+        self.load_alternatives()
 
+    def show_group_elements_interface(self, choice="Группа элементов"):
+        self.clear_right_frame()
 
-        self.tree_element_properties.delete(*self.tree_element_properties.get_children())
-     
-        for row in rows:
-            self.tree_element_properties.insert("", "end", values=row)
+        self.label_title = customtkinter.CTkLabel(
+            self.frame_right, text=choice, font=("Arial", 18, "bold")
+        )
+        self.label_title.grid(
+            row=0, column=0, columnspan=3, padx=5, pady=5, sticky="w"
+        )
 
-       
+        self.info_label = customtkinter.CTkLabel(
+            self.frame_right,
+            text="Выберите альтернативу и элемент с определенными свойствами, затем добавьте в группу",
+            font=("Arial", 10),
+            text_color="#666666"
+        )
+        self.info_label.grid(
+            row=1, column=0, columnspan=3, padx=5, pady=2, sticky="w"
+        )
+
+        if not self.readonly:
+            self.alt_select_group = customtkinter.CTkOptionMenu(
+                self.frame_right,
+                values=self.get_alternatives_list(),
+                width=200
+            )
+            self.alt_select_group.grid(row=2, column=0, padx=2, pady=5, sticky="ew")
+
+            self.elem_prop_select_group = customtkinter.CTkOptionMenu(
+                self.frame_right,
+                values=self.get_element_properties_list(),
+                width=300
+            )
+            self.elem_prop_select_group.grid(row=2, column=1, padx=2, pady=5, sticky="ew")
+
+            self.button_add_elem_to_group = customtkinter.CTkButton(
+                self.frame_right,
+                text="Добавить элемент",
+                command=self.add_element_to_group_alternative,
+                width=150
+            )
+            self.button_add_elem_to_group.grid(row=2, column=2, padx=2, pady=(5, 2), sticky="ew")
+
+        self.tree_group_elements = ttk.Treeview(
+            self.frame_right,
+            columns=("ID", "Элемент", "Свойство", "Значение"),
+            show="headings"
+        )
+        self.tree_group_elements.heading("ID", text="ID")
+        self.tree_group_elements.heading("Элемент", text="Элемент")
+        self.tree_group_elements.heading("Свойство", text="Свойство")
+        self.tree_group_elements.heading("Значение", text="Значение")
+        self.tree_group_elements.column("ID", width=50)
+        self.tree_group_elements.column("Элемент", width=120)
+        self.tree_group_elements.column("Свойство", width=120)
+        self.tree_group_elements.column("Значение", width=120)
+        if self.readonly:
+            self.tree_group_elements.grid(row=3, column=0, columnspan=3, padx=5, pady=(2, 2), sticky="nsew")
+            self.frame_right.grid_rowconfigure(3, weight=1)
+        else:
+            self.tree_group_elements.grid(row=3, column=0, columnspan=3, padx=5, pady=(2, 2), sticky="nsew")
+            self.frame_right.grid_rowconfigure(3, weight=1)
+
+        self.frame_right.grid_columnconfigure(0, weight=1)
+        self.frame_right.grid_columnconfigure(1, weight=1)
+
+        if not self.readonly:
+            self.button_delete_elem_from_group = customtkinter.CTkButton(
+                self.frame_right,
+                text="Удалить выбранный элемент",
+                command=self.delete_element_from_group_alternative,
+                width=200,
+                fg_color="#FF6B6B",
+                text_color="white"
+            )
+            self.button_delete_elem_from_group.grid(row=4, column=1, padx=2, pady=(2, 5), sticky="ew")
+
+        def on_alt_select_group_callback(choice):
+            if not self.readonly:
+                self.load_group_elements(choice)
+        if not self.readonly:
+            self.alt_select_group.configure(command=on_alt_select_group_callback)
+        alt_list = self.get_alternatives_list()
+        if alt_list and alt_list[0] != "Нет альтернатив" and not self.readonly:
+            self.load_group_elements(alt_list[0])
 
     def add_set(self):
+        if self.readonly:
+            return
     
         name = self.entry.get()
         if name:
             conn = sqlite3.connect("ontology.db")
             cursor = conn.cursor()
             try:
-                cursor.execute("INSERT INTO sets (name) VALUES (?)", (name,))
+                cursor.execute("INSERT INTO definitions (set_name) VALUES (?)", (name,))
                 conn.commit()
                 self.entry.delete(0, "end")
                 self.load_sets()
@@ -596,10 +657,11 @@ class KnowledgeEditor:
             conn.close()
 
     def add_definition(self):
+        if self.readonly:
+            return
         
         set_name = self.sets_list.get()
         definition = self.entry_definition.get()
-
         if set_name and definition:
             conn = sqlite3.connect("ontology.db")
             cursor = conn.cursor()
@@ -616,14 +678,15 @@ class KnowledgeEditor:
             conn.close()
 
     def add_interface_elements(self):
+        if self.readonly:
+            return
+            
         name = self.entry_interface_elements.get()
         if name:
             conn = sqlite3.connect("ontology.db")
             cursor = conn.cursor()
             try:
-                cursor.execute(
-                    "INSERT INTO interface_elements (name) VALUES (?)", (name,)
-                )
+                cursor.execute("INSERT INTO interface_elements (name) VALUES (?)", (name,))
                 conn.commit()
                 self.entry_interface_elements.delete(0, "end")
                 self.load_interface_elements()
@@ -632,38 +695,41 @@ class KnowledgeEditor:
             conn.close()
 
     def add_properties_of_elements(self):
+        if self.readonly:
+            return
+            
         name = self.entry_properties_of_elements.get()
         if name:
             conn = sqlite3.connect("ontology.db")
             cursor = conn.cursor()
             try:
-                cursor.execute(
-                    "INSERT INTO properties_of_elements (name) VALUES (?)", (name,)
-                )
+                cursor.execute("INSERT INTO properties_of_elements (name) VALUES (?)", (name,))
                 conn.commit()
                 self.entry_properties_of_elements.delete(0, "end")
                 self.load_properties_of_elements()
             except sqlite3.IntegrityError:
-                print("Такой элемент уже существует")
+                print("Такое свойство уже существует")
             conn.close()
 
     def add_property_range(self):
-        property = self.properties_list.get()
-        ranges = self.entry_property_range.get()
+        if self.readonly:
+            return
 
-        if property and ranges:
+        property_name = self.properties_list.get()
+        value = self.entry_property_range.get()
+        if property_name and value:
             conn = sqlite3.connect("ontology.db")
             cursor = conn.cursor()
             try:
                 cursor.execute(
-                    "INSERT INTO property_range (property, ranges) VALUES (?, ?)",
-                    (property, ranges),
+                    "INSERT INTO property_value_range (property_name, value) VALUES (?, ?)",
+                    (property_name, value),
                 )
                 conn.commit()
                 self.entry_property_range.delete(0, "end")
                 self.load_property_range()
             except sqlite3.IntegrityError:
-                print("Такое определение уже существует")
+                print("Такое значение уже существует")
             conn.close()
 
     def load_sets(self):
@@ -763,237 +829,10 @@ class KnowledgeEditor:
 
         print("Кнопка работает")
 
-    def show_alternatives_interface(self, choice="Альтернатива для множества"):
-        self.clear_right_frame()
-
-        self.label_title = customtkinter.CTkLabel(
-            self.frame_right, text=choice, font=("Arial", 18, "bold")
-        )
-        self.label_title.grid(
-            row=0, column=0, columnspan=4, padx=5, pady=5, sticky="w"
-        )
-
-        self.entry_alternative = customtkinter.CTkEntry(
-            self.frame_right,
-            placeholder_text="Введите название альтернативы",
-            width=200
-        )
-        self.entry_alternative.grid(row=1, column=0, padx=2, pady=5, sticky="ew")
-
-        self.sets_list = customtkinter.CTkOptionMenu(
-            self.frame_right,
-            values=self.get_set_names_from_definitions(),
-            width=200
-        )
-        self.sets_list.grid(row=1, column=1, padx=2, pady=5, sticky="ew")
-
-        self.button_add_alternative = customtkinter.CTkButton(
-            self.frame_right,
-            text="Добавить",
-            command=self.add_alternative,
-            width=100
-        )
-        self.button_add_alternative.grid(row=1, column=2, padx=2, pady=5, sticky="ew")
-
-        self.button_delete_alternative = customtkinter.CTkButton(
-            self.frame_right,
-            text="Удалить",
-            command=self.delete_alternative,
-            width=100,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete_alternative.grid(row=1, column=3, padx=2, pady=5, sticky="ew")
-
-        self.tree_alternatives = ttk.Treeview(
-            self.frame_right,
-            columns=("ID", "Альтернатива", "Множество"),
-            show="headings"
-        )
-        self.tree_alternatives.heading("ID", text="ID")
-        self.tree_alternatives.heading("Альтернатива", text="Название альтернативы")
-        self.tree_alternatives.heading("Множество", text="Название множества")
-        self.tree_alternatives.column("ID", width=50)
-        self.tree_alternatives.column("Альтернатива", width=200)
-        self.tree_alternatives.column("Множество", width=200)
-        self.tree_alternatives.grid(
-            row=2, column=0, columnspan=4, padx=5, pady=5, sticky="nsew"
-        )
-        self.frame_right.grid_rowconfigure(2, weight=1)
-        self.frame_right.grid_columnconfigure(0, weight=1)
-        self.frame_right.grid_columnconfigure(1, weight=1)
-
-        self.load_alternatives()
-
-        # --- Новая секция для добавления элементов к альтернативе ---
-        self.label_add_elem = customtkinter.CTkLabel(
-            self.frame_right, text="Добавить элемент со свойством к альтернативе", font=("Arial", 14, "bold")
-        )
-        self.label_add_elem.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky="w")
-
-        self.alt_select = customtkinter.CTkOptionMenu(
-            self.frame_right,
-            values=self.get_alternatives_list(),
-            width=200
-        )
-        self.alt_select.grid(row=4, column=0, padx=2, pady=5, sticky="ew")
-
-        self.elem_prop_select = customtkinter.CTkOptionMenu(
-            self.frame_right,
-            values=self.get_element_properties_list(),
-            width=300
-        )
-        self.elem_prop_select.grid(row=4, column=1, padx=2, pady=5, sticky="ew")
-
-        self.button_add_elem_to_alt = customtkinter.CTkButton(
-            self.frame_right,
-            text="Добавить элемент",
-            command=self.add_element_to_alternative,
-            width=150
-        )
-        self.button_add_elem_to_alt.grid(row=4, column=2, padx=2, pady=5, sticky="ew")
-
-        # Таблица для отображения элементов, связанных с выбранной альтернативой
-        self.tree_alt_elements = ttk.Treeview(
-            self.frame_right,
-            columns=("ID", "Элемент", "Свойство", "Значение"),
-            show="headings"
-        )
-        self.tree_alt_elements.heading("ID", text="ID")
-        self.tree_alt_elements.heading("Элемент", text="Элемент")
-        self.tree_alt_elements.heading("Свойство", text="Свойство")
-        self.tree_alt_elements.heading("Значение", text="Значение")
-        self.tree_alt_elements.column("ID", width=50)
-        self.tree_alt_elements.column("Элемент", width=120)
-        self.tree_alt_elements.column("Свойство", width=120)
-        self.tree_alt_elements.column("Значение", width=120)
-        self.tree_alt_elements.grid(
-            row=5, column=0, columnspan=4, padx=5, pady=5, sticky="nsew"
-        )
-        self.frame_right.grid_rowconfigure(5, weight=1)
-
-        self.button_delete_elem_from_alt = customtkinter.CTkButton(
-            self.frame_right,
-            text="Удалить элемент",
-            command=self.delete_element_from_alternative,
-            width=150,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete_elem_from_alt.grid(row=6, column=2, padx=2, pady=5, sticky="ew")
-
-        # При выборе альтернативы обновлять список связанных элементов
-        def on_alt_select_callback(choice):
-            self.load_alternative_elements(choice)
-        self.alt_select.configure(command=on_alt_select_callback)
-        # Инициализация списка для первой альтернативы
-        alt_list = self.get_alternatives_list()
-        if alt_list and alt_list[0] != "Нет альтернатив":
-            self.load_alternative_elements(alt_list[0])
-
-    def add_element_to_alternative(self):
-        alt_name = self.alt_select.get()
-        elem_prop = self.elem_prop_select.get()
-        if alt_name == "Нет альтернатив" or elem_prop == "Нет элементов с определенными свойствами":
-            return
-        # Получаем id альтернативы
-        conn = sqlite3.connect("ontology.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM alternatives WHERE alternative_name = ?", (alt_name,))
-        alt_row = cursor.fetchone()
-        if not alt_row:
-            conn.close()
-            return
-        alt_id = alt_row[0]
-        # Получаем id element_properties_definition
-        parts = elem_prop.split(" - ")
-        if len(parts) != 3:
-            conn.close()
-            return
-        element_name, property_name, property_value = parts
-        cursor.execute("""
-            SELECT epd.id FROM element_properties_definition epd
-            JOIN interface_elements ie ON epd.element_id = ie.id
-            JOIN properties_of_elements poe ON epd.property_id = poe.id
-            WHERE ie.name = ? AND poe.name = ? AND epd.property_value = ?
-        """, (element_name, property_name, property_value))
-        epd_row = cursor.fetchone()
-        if not epd_row:
-            conn.close()
-            return
-        epd_id = epd_row[0]
-        # Добавляем связь
-        try:
-            cursor.execute(
-                "INSERT INTO alternative_elements (alternative_id, element_property_id) VALUES (?, ?)",
-                (alt_id, epd_id)
-            )
-            conn.commit()
-        except sqlite3.IntegrityError:
-            print("Такая связь уже существует")
-        conn.close()
-        self.load_alternative_elements(alt_name)
-
-    def load_alternative_elements(self, alt_name):
-        self.tree_alt_elements.delete(*self.tree_alt_elements.get_children())
-        conn = sqlite3.connect("ontology.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM alternatives WHERE alternative_name = ?", (alt_name,))
-        alt_row = cursor.fetchone()
-        if not alt_row:
-            conn.close()
-            return
-        alt_id = alt_row[0]
-        cursor.execute("""
-            SELECT ae.id, ie.name, poe.name, epd.property_value
-            FROM alternative_elements ae
-            JOIN element_properties_definition epd ON ae.element_property_id = epd.id
-            JOIN interface_elements ie ON epd.element_id = ie.id
-            JOIN properties_of_elements poe ON epd.property_id = poe.id
-            WHERE ae.alternative_id = ?
-        """, (alt_id,))
-        rows = cursor.fetchall()
-        conn.close()
-        for row in rows:
-            self.tree_alt_elements.insert("", "end", values=row)
-
-    def delete_element_from_alternative(self):
-        selected_item = self.tree_alt_elements.selection()
-        if selected_item:
-            item_values = self.tree_alt_elements.item(selected_item)['values']
-            if len(item_values) >= 1:
-                item_id = item_values[0]
-                alt_name = self.alt_select.get()
-                conn = sqlite3.connect("ontology.db")
-                cursor = conn.cursor()
-                try:
-                    cursor.execute("DELETE FROM alternative_elements WHERE id = ?", (item_id,))
-                    conn.commit()
-                except sqlite3.IntegrityError:
-                    print("Ошибка при удалении элемента из альтернативы")
-                finally:
-                    conn.close()
-                self.load_alternative_elements(alt_name)
-
-    def get_set_names_from_definitions(self):
-      
-        conn = sqlite3.connect("ontology.db")
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT DISTINCT set_name FROM definitions WHERE set_name IS NOT NULL AND set_name != ''")
-            set_names = [row[0] for row in cursor.fetchall()]
-        except sqlite3.OperationalError:
-            set_names = ["Нет доступных множеств"]
-        conn.close()
-
-        if not set_names:
-            return ["Нет доступных множеств"]
-        return set_names
-
     def add_alternative(self):
        
         alternative_name = self.entry_alternative.get()
-        set_name = self.sets_list.get()
+        set_name = self.sets_list_alt.get()
 
         if alternative_name and set_name and set_name != "Нет доступных множеств":
             conn = sqlite3.connect("ontology.db")
@@ -1022,93 +861,130 @@ class KnowledgeEditor:
         for row in rows:
             self.tree_alternatives.insert("", "end", values=row)
 
-    def show_group_elements_interface(self, choice="Группа элементов"):
-        """Отображает интерфейс для управления группами элементов"""
-        self.clear_right_frame()
+    def add_element_to_group_alternative(self):
+        """Добавляет элемент к альтернативе (перенесенный функционал из интерфейса альтернатив)"""
+        alt_name = self.alt_select_group.get()
+        elem_prop = self.elem_prop_select_group.get()
+        
+        print(f"Попытка добавления связи:")
+        print(f"  Альтернатива: '{alt_name}'")
+        print(f"  Элемент-свойство: '{elem_prop}'")
+        
+        if alt_name == "Нет альтернатив" or elem_prop == "Нет элементов с определенными свойствами":
+            print("  Ошибка: выбраны недопустимые значения")
+            return
+            
+        # Получаем id альтернативы
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("SELECT id FROM alternatives WHERE alternative_name = ?", (alt_name,))
+            alt_row = cursor.fetchone()
+            if not alt_row:
+                print(f"  Ошибка: альтернатива '{alt_name}' не найдена в БД")
+                return
+            alt_id = alt_row[0]
+            print(f"  ID альтернативы: {alt_id}")
+            
+            # Получаем id element_properties_definition
+            parts = elem_prop.split(" - ")
+            if len(parts) != 3:
+                print(f"  Ошибка: неправильный формат элемента-свойства: '{elem_prop}'")
+                return
+                
+            element_name, property_name, property_value = parts
+            print(f"  Разбор элемента-свойства:")
+            print(f"    Элемент: '{element_name}'")
+            print(f"    Свойство: '{property_name}'")
+            print(f"    Значение: '{property_value}'")
+            
+            cursor.execute("""
+                SELECT epd.id FROM element_properties_definition epd
+                JOIN interface_elements ie ON epd.element_id = ie.id
+                JOIN properties_of_elements poe ON epd.property_id = poe.id
+                WHERE ie.name = ? AND poe.name = ? AND epd.property_value = ?
+            """, (element_name, property_name, property_value))
+            epd_row = cursor.fetchone()
+            
+            if not epd_row:
+                print(f"  Ошибка: элемент-свойство не найден в БД")
+                # Проверим, что существует
+                cursor.execute("SELECT name FROM interface_elements WHERE name = ?", (element_name,))
+                if not cursor.fetchone():
+                    print(f"    Элемент '{element_name}' не существует")
+                cursor.execute("SELECT name FROM properties_of_elements WHERE name = ?", (property_name,))
+                if not cursor.fetchone():
+                    print(f"    Свойство '{property_name}' не существует")
+                return
+                
+            epd_id = epd_row[0]
+            print(f"  ID элемента-свойства: {epd_id}")
+            
+            # Добавляем связь
+            cursor.execute(
+                "INSERT INTO alternative_elements (alternative_id, element_property_id) VALUES (?, ?)",
+                (alt_id, epd_id)
+            )
+            conn.commit()
+            print(f"  Связь успешно добавлена!")
+            
+        except sqlite3.IntegrityError as e:
+            print(f"  Ошибка целостности: {e}")
+            print("  Такая связь уже существует")
+        except Exception as e:
+            print(f"  Неожиданная ошибка: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
+            
+        self.load_group_elements(alt_name)
 
-        # Заголовок
-        self.label_title = customtkinter.CTkLabel(
-            self.frame_right, text=choice, font=("Arial", 18, "bold")
-        )
-        self.label_title.grid(
-            row=0, column=0, columnspan=3, padx=5, pady=5, sticky="w"
-        )
+    def load_group_elements(self, alt_name):
+        """Загружает элементы для выбранной альтернативы (перенесенный функционал из интерфейса альтернатив)"""
+        self.tree_group_elements.delete(*self.tree_group_elements.get_children())
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM alternatives WHERE alternative_name = ?", (alt_name,))
+        alt_row = cursor.fetchone()
+        if not alt_row:
+            conn.close()
+            return
+        alt_id = alt_row[0]
+        cursor.execute("""
+            SELECT ae.id, ie.name, poe.name, epd.property_value
+            FROM alternative_elements ae
+            JOIN element_properties_definition epd ON ae.element_property_id = epd.id
+            JOIN interface_elements ie ON epd.element_id = ie.id
+            JOIN properties_of_elements poe ON epd.property_id = poe.id
+            WHERE ae.alternative_id = ?
+        """, (alt_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        for row in rows:
+            self.tree_group_elements.insert("", "end", values=row)
 
-        # Информационная метка
-        self.info_label = customtkinter.CTkLabel(
-            self.frame_right,
-            text="Выберите альтернативу и элемент с определенными свойствами, затем добавьте в группу",
-            font=("Arial", 10),
-            text_color="#666666"
-        )
-        self.info_label.grid(
-            row=1, column=0, columnspan=3, padx=5, pady=2, sticky="w"
-        )
-
-        # Выпадающий список альтернатив
-        self.alternatives_list = customtkinter.CTkOptionMenu(
-            self.frame_right,
-            values=self.get_alternatives_list(),
-            width=200
-        )
-        self.alternatives_list.grid(row=2, column=0, padx=2, pady=5, sticky="ew")
-
-        # Выпадающий список элементов с свойствами
-        self.element_properties_list = customtkinter.CTkOptionMenu(
-            self.frame_right,
-            values=self.get_element_properties_list(),
-            width=300
-        )
-        self.element_properties_list.grid(row=2, column=1, padx=2, pady=5, sticky="ew")
-
-        # Кнопка добавления
-        self.button_add_group = customtkinter.CTkButton(
-            self.frame_right,
-            text="Добавить в группу",
-            command=self.add_element_to_group,
-            width=150
-        )
-        self.button_add_group.grid(row=2, column=2, padx=2, pady=5, sticky="ew")
-
-        # Кнопка удаления
-        self.button_delete_group = customtkinter.CTkButton(
-            self.frame_right,
-            text="Удалить из группы",
-            command=self.delete_element_from_group,
-            width=150,
-            fg_color="#FF6B6B",
-            text_color="white"
-        )
-        self.button_delete_group.grid(row=3, column=2, padx=2, pady=5, sticky="ew")
-
-        # Таблица групп элементов
-        self.tree_groups = ttk.Treeview(
-            self.frame_right,
-            columns=("ID", "Альтернатива", "Элемент", "Свойство", "Значение"),
-            show="headings"
-        )
-        self.tree_groups.heading("ID", text="ID")
-        self.tree_groups.heading("Альтернатива", text="Альтернатива")
-        self.tree_groups.heading("Элемент", text="Элемент")
-        self.tree_groups.heading("Свойство", text="Свойство")
-        self.tree_groups.heading("Значение", text="Значение свойства")
-        self.tree_groups.column("ID", width=50)
-        self.tree_groups.column("Альтернатива", width=120)
-        self.tree_groups.column("Элемент", width=120)
-        self.tree_groups.column("Свойство", width=120)
-        self.tree_groups.column("Значение", width=120)
-
-        self.tree_groups.grid(
-            row=4, column=0, columnspan=3, padx=5, pady=5, sticky="nsew"
-        )
-        self.frame_right.grid_rowconfigure(4, weight=1)
-        self.frame_right.grid_columnconfigure(0, weight=1)
-        self.frame_right.grid_columnconfigure(1, weight=1)
-
-        self.load_groups()
+    def delete_element_from_group_alternative(self):
+        """Удаляет элемент из альтернативы (перенесенный функционал из интерфейса альтернатив)"""
+        selected_item = self.tree_group_elements.selection()
+        if selected_item:
+            item_values = self.tree_group_elements.item(selected_item)['values']
+            if len(item_values) >= 1:
+                item_id = item_values[0]
+                alt_name = self.alt_select_group.get()
+                conn = sqlite3.connect("ontology.db")
+                cursor = conn.cursor()
+                try:
+                    cursor.execute("DELETE FROM alternative_elements WHERE id = ?", (item_id,))
+                    conn.commit()
+                except sqlite3.IntegrityError:
+                    print("Ошибка при удалении элемента из альтернативы")
+                finally:
+                    conn.close()
+                self.load_group_elements(alt_name)
 
     def get_alternatives_list(self):
-       
+        """Получает список альтернатив"""
         conn = sqlite3.connect("ontology.db")
         cursor = conn.cursor()
         cursor.execute("SELECT alternative_name FROM alternatives")
@@ -1135,73 +1011,6 @@ class KnowledgeEditor:
         if not elements:
             return ["Нет элементов с определенными свойствами"]
         return elements
-
-    def add_element_to_group(self):
-        """Добавляет элемент в группу для выбранной альтернативы"""
-        alternative = self.alternatives_list.get()
-        element_property = self.element_properties_list.get()
-
-        if alternative != "Нет альтернатив" and element_property != "Нет элементов с определенными свойствами":
-            # Разбираем строку "Элемент - Свойство - Значение"
-            parts = element_property.split(" - ")
-            if len(parts) == 3:
-                element_name, property_name, property_value = parts
-                
-                conn = sqlite3.connect("ontology.db")
-                cursor = conn.cursor()
-                try:
-                    cursor.execute(
-                        "INSERT INTO group_elements (alternative_name, element_name, property_name, property_value) VALUES (?, ?, ?, ?)",
-                        (alternative, element_name, property_name, property_value)
-                    )
-                    conn.commit()
-                    self.load_groups()
-                except sqlite3.IntegrityError:
-                    print("Такая связь уже существует")
-                finally:
-                    conn.close()
-
-    def delete_element_from_group(self):
-        """Удаляет элемент из группы"""
-        selected_item = self.tree_groups.selection()
-        if selected_item:
-            item_values = self.tree_groups.item(selected_item)['values']
-            if len(item_values) >= 5:
-                item_id = item_values[0]
-                alternative = item_values[1]
-                element = item_values[2]
-                property = item_values[3]
-                value = item_values[4]
-
-                conn = sqlite3.connect("ontology.db")
-                cursor = conn.cursor()
-                try:
-                    cursor.execute("""
-                        DELETE FROM group_elements
-                        WHERE id = ?
-                    """, (item_id,))
-                    conn.commit()
-                    self.load_groups()
-                except sqlite3.IntegrityError:
-                    print("Ошибка при удалении элемента из группы")
-                finally:
-                    conn.close()
-
-    def load_groups(self):
-        """Загружает данные групп элементов"""
-        conn = sqlite3.connect("ontology.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id, alternative_name, element_name, property_name, property_value
-            FROM group_elements
-            ORDER BY alternative_name, element_name
-        """)
-        rows = cursor.fetchall()
-        conn.close()
-
-        self.tree_groups.delete(*self.tree_groups.get_children())
-        for row in rows:
-            self.tree_groups.insert("", "end", values=row)
 
     def delete_set(self):
         selected_item = self.tree.selection()
@@ -1337,3 +1146,104 @@ class KnowledgeEditor:
                     print("Ошибка при удалении альтернативы")
                 finally:
                     conn.close()
+
+    def update_property_values(self, selected_property):
+      
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT ranges 
+            FROM property_range 
+            WHERE property = ?
+        """, (selected_property,))
+        values = [row[0] for row in cursor.fetchall()]
+        conn.close()
+
+        if not values:
+            values = ["Нет доступных значений"]
+        
+        self.property_values_list.configure(values=values)
+        self.property_values_list.set(values[0])
+
+    def add_element_property(self):
+  
+        element = self.element_list.get()
+        property = self.properties_list.get()
+        value = self.property_values_list.get()
+
+     
+
+        if element != "Нет элементов" and property != "Нет свойств" and value != "Нет доступных значений":
+            conn = sqlite3.connect("ontology.db")
+            cursor = conn.cursor()
+            try:
+             
+                cursor.execute("SELECT id FROM interface_elements WHERE name = ?", (element,))
+                element_id_result = cursor.fetchone()
+                print(f"ID элемента: {element_id_result}")
+                
+                cursor.execute("SELECT id FROM properties_of_elements WHERE name = ?", (property,))
+                property_id_result = cursor.fetchone()
+                print(f"ID свойства: {property_id_result}")
+
+                if element_id_result is None or property_id_result is None:
+                    print("Ошибка: не найден ID элемента или свойства")
+                    return
+
+                element_id = element_id_result[0]
+                property_id = property_id_result[0]
+
+                cursor.execute("""
+                    INSERT INTO element_properties_definition 
+                    (element_id, property_id, property_value) 
+                    VALUES (?, ?, ?)
+                """, (element_id, property_id, value))
+                
+                conn.commit()
+                print("Запись успешно добавлена")
+                self.load_element_properties()
+            except sqlite3.IntegrityError as e:
+                print(f"Ошибка при добавлении: {e}")
+            except Exception as e:
+                print(f"Неожиданная ошибка: {e}")
+            finally:
+                conn.close()
+
+    def load_element_properties(self):
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT 
+                epd.id, 
+                ie.name as element_name, 
+                pe.name as property_name, 
+                epd.property_value
+            FROM element_properties_definition epd
+            JOIN interface_elements ie ON epd.element_id = ie.id
+            JOIN properties_of_elements pe ON epd.property_id = pe.id
+            ORDER BY ie.name, pe.name
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+
+
+        self.tree_element_properties.delete(*self.tree_element_properties.get_children())
+     
+        for row in rows:
+            self.tree_element_properties.insert("", "end", values=row)
+
+    def get_set_names_from_definitions(self):
+        """Получает список названий множеств из определений"""
+        conn = sqlite3.connect("ontology.db")
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT DISTINCT set_name FROM definitions WHERE set_name IS NOT NULL AND set_name != ''")
+            set_names = [row[0] for row in cursor.fetchall()]
+        except sqlite3.OperationalError:
+            set_names = ["Нет доступных множеств"]
+        conn.close()
+
+        if not set_names:
+            return ["Нет доступных множеств"]
+        return set_names
